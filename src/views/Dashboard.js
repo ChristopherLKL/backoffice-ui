@@ -126,7 +126,7 @@ class Dashboard extends React.Component {
           pointBorderWidth: 20,
           pointHoverRadius: 4,
           pointHoverBorderWidth: 15,
-          pointRadius: 4,
+          pointRadius: 0,
           data: data
         }
       ]
