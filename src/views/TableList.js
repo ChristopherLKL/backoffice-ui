@@ -13,6 +13,8 @@ import {
   Col
 } from "reactstrap";
 
+import { Switch } from '@material-ui/core';
+
 class Tables extends React.Component {
   constructor(props) {
     super(props);
@@ -62,6 +64,7 @@ class Tables extends React.Component {
                         <th>Type</th>
                         <th>Firmware version</th>
                         <th>Status</th>
+                        <th>Relay State</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -77,6 +80,7 @@ class Tables extends React.Component {
                               <td>{device.deviceType}</td>
                               <td>{device.fwVer}</td>
                               <td>{device.status===1 ? "ON" : "OFF"}</td>
+                              <td><Switch checked={device.deviceState !== undefined && device.deviceState.system.get_sysinfo.relay_state==="1" ? true : false} /></td>
                             </tr>
                           );
                         })
