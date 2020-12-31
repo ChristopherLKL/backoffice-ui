@@ -63,7 +63,6 @@ class Tables extends React.Component {
                         <th>Region</th>
                         <th>Type</th>
                         <th>Firmware version</th>
-                        <th>Status</th>
                         <th>Relay State</th>
                       </tr>
                     </thead>
@@ -79,7 +78,6 @@ class Tables extends React.Component {
                               <td>{device.deviceRegion}</td>
                               <td>{device.deviceType}</td>
                               <td>{device.fwVer}</td>
-                              <td>{device.status===1 ? "ON" : "OFF"}</td>
                               <td><Switch checked={device.deviceState !== undefined && device.deviceState.system.get_sysinfo.relay_state==="1" ? true : false} /></td>
                             </tr>
                           );

@@ -1,5 +1,21 @@
 // chartExample1 and chartExample2 options
-let chart1_2_options = {
+let donut_options = {
+  legend: {
+    display: false
+  },
+  responsive: true,
+  tooltips: {
+    backgroundColor: "#f5f5f5",
+    titleFontColor: "#333",
+    bodyFontColor: "#666",
+    bodySpacing: 4,
+    xPadding: 12,
+    mode: "nearest",
+    intersect: 0,
+    position: "nearest"
+  }
+};
+let line_options = {
   maintainAspectRatio: false,
   legend: {
     display: false
@@ -52,6 +68,9 @@ let chart1_2_options = {
 // #########################################
 // // // used inside src/views/Dashboard.js
 // #########################################
+let donutChart = {
+  options: donut_options
+};
 let lineChart = {
   day: canvas => {
     let ctx = canvas.getContext("2d");
@@ -188,9 +207,10 @@ let lineChart = {
       ]
     };
   },
-  options: chart1_2_options
+  options: line_options
 };
 
 module.exports = {
-  lineChart // in src/views/Dashboard.js
+  lineChart, // in src/views/Dashboard.js
+  donutChart
 };

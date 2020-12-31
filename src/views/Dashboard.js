@@ -2,7 +2,7 @@ import React from "react";
 // nodejs library that concatenates classes
 import classNames from "classnames";
 // react plugin used to create charts
-import { Line } from "react-chartjs-2";
+import { Line, Doughnut } from "react-chartjs-2";
 
 // reactstrap components
 import {
@@ -18,7 +18,8 @@ import {
 
 // core components
 import {
-  lineChart
+  lineChart,
+  donutChart
 } from "variables/charts.js";
 
 import Configuration from "../configuration/Configuration.js";
@@ -31,10 +32,14 @@ class Dashboard extends React.Component {
       account: null,
       dayStatesPerDevice: [],
       weekStatesPerDevice: [],
-      monthStatesPerDevice: []
+      monthStatesPerDevice: [],
+      donutCurrentLabels: [],
+      donutCurrentPowerData: [],
+      donutCurrentTotalData: []
     };
     this.config = new Configuration();
     this.buildLine = this.buildLine.bind(this);
+    this.buildDonut = this.buildDonut.bind(this);
     this.setChartFilter = this.setChartFilter.bind(this);
   }
 
@@ -43,6 +48,15 @@ class Dashboard extends React.Component {
       .then((result) => result.json())
       .then((account) => {
         this.setState({account: account});
+        fetch(this.config.TPLINK_DEVICES_STATE.replaceAll("{accountId}", account.accountId))
+          .then((result) => result.json())
+          .then((states) => {
+            states.forEach((state) => {
+              this.state.donutCurrentLabels.push(state.system.get_sysinfo.alias);
+              this.state.donutCurrentPowerData.push(state.emeter.get_realtime.power);
+              this.state.donutCurrentTotalData.push(state.emeter.get_realtime.total);
+            });
+          });
         fetch(this.config.TPLINK_DEVICES.replaceAll("{accountId}", account.accountId))
           .then((result) => result.json())
           .then((devices) => {
@@ -82,7 +96,40 @@ class Dashboard extends React.Component {
           });
       });
   }
-  
+
+  buildDonut(canvas, labels, data) {
+    let ctx = canvas.getContext("2d");
+
+    let gradientStroke = ctx.createLinearGradient(0, 230, 0, 50);
+
+    gradientStroke.addColorStop(1, "rgba(29,140,248,0.2)");
+    gradientStroke.addColorStop(0.4, "rgba(29,140,248,0.0)");
+    gradientStroke.addColorStop(0, "rgba(29,140,248,0)"); //blue colors
+
+    return {
+      labels: labels,
+      datasets: [
+        {
+          label: "Power",
+          fill: true,
+          backgroundColor: gradientStroke,
+          borderColor: "#1f8ef1",
+          borderWidth: 2,
+          borderDash: [],
+          borderDashOffset: 0.0,
+          pointBackgroundColor: "#1f8ef1",
+          pointBorderColor: "rgba(255,255,255,0)",
+          pointHoverBackgroundColor: "#1f8ef1",
+          pointBorderWidth: 20,
+          pointHoverRadius: 4,
+          pointHoverBorderWidth: 15,
+          pointRadius: 0,
+          data: data
+        }
+      ]
+    };
+  }
+
   buildLine(canvas, chartFilter, deviceId) {
     let labels = null, data = null;
     let ctx = canvas.getContext("2d");
@@ -143,6 +190,30 @@ class Dashboard extends React.Component {
     return (
       <>
         <div className="content">
+          <Row>
+            <Col>
+            <Card className="card-chart">
+                <CardBody>
+                  <Row>
+                    <Col className="text-left" sm="6">
+                      <h5 className="card-category">Current power usage</h5>
+                      <Doughnut
+                        data={(canvas) => this.buildDonut(canvas, this.state.donutCurrentLabels, this.state.donutCurrentPowerData)}
+                        options={donutChart.options}
+                      />
+                    </Col>
+                    <Col className="text-left" sm="6">
+                      <h5 className="card-category">Total power usage</h5>
+                      <Doughnut
+                        data={(canvas) => this.buildDonut(canvas, this.state.donutCurrentLabels, this.state.donutCurrentTotalData)}
+                        options={donutChart.options}
+                      />
+                    </Col>
+                  </Row>
+                </CardBody>
+              </Card>
+            </Col>
+          </Row>
           {this.state.dayStatesPerDevice && this.state.dayStatesPerDevice.map((deviceObj) => {
             return (
               <Row key={deviceObj.device.deviceId}>
