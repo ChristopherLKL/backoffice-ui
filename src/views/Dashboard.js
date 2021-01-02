@@ -213,7 +213,7 @@ class Dashboard extends React.Component {
                 <Row>
                   <Col className="text-left" sm="6">
                     <CardHeader>
-                      <h5 className="card-category">Power usage</h5>
+                      <h4 className="title">Power usage</h4>
                       <CardTitle tag="h3">Current consumption (watt)</CardTitle>
                     </CardHeader>
                     <CardBody>
@@ -225,7 +225,7 @@ class Dashboard extends React.Component {
                   </Col>
                   <Col className="text-left" sm="6">
                     <CardHeader>
-                      <h5 className="card-category">Power usage</h5>
+                      <h4 className="title">&nbsp;</h4>
                       <CardTitle tag="h3">Total last 24 hours (watt per hour)</CardTitle>
                     </CardHeader>
                     <CardBody>
@@ -248,7 +248,7 @@ class Dashboard extends React.Component {
                       <Row>
                         <Col className="text-left" sm="6">
                           <h5 className="card-category">{deviceObj.device.deviceModel} ({deviceObj.device.fwVer})</h5>
-                          <CardTitle tag="h2">{deviceObj.device.alias}</CardTitle>
+                          <CardTitle tag="h3">{deviceObj.device.alias}</CardTitle>
                         </Col>
                       </Row>
                     </CardHeader>

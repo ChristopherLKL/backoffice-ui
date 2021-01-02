@@ -41,7 +41,7 @@ class UserProfile extends React.Component {
             <Col md="8">
               <Card>
                 <CardHeader>
-                  <h5 className="title">TP Link Profile</h5>
+                  <h4 className="title">TP Link Profile</h4>
                 </CardHeader>
                 <CardBody>
                   <Form>

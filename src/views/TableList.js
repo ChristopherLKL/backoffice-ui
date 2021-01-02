@@ -7,7 +7,6 @@ import {
   Card,
   CardHeader,
   CardBody,
-  CardTitle,
   Table,
   Row,
   Col
@@ -66,7 +65,7 @@ class Tables extends React.Component {
             <Col md="12">
               <Card>
                 <CardHeader>
-                  <CardTitle tag="h4">My Devices</CardTitle>
+                  <h4 className="title">TP Link Devices</h4>
                 </CardHeader>
                 <CardBody>
                   <Table className="tablesorter" responsive>
