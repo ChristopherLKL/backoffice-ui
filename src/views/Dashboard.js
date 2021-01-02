@@ -1,13 +1,9 @@
 import React from "react";
-// nodejs library that concatenates classes
-import classNames from "classnames";
 // react plugin used to create charts
 import { Line, Doughnut } from "react-chartjs-2";
 
 // reactstrap components
 import {
-  Button,
-  ButtonGroup,
   Card,
   CardHeader,
   CardBody,
@@ -30,20 +26,22 @@ class Dashboard extends React.Component {
     this.state = {
       chartFilter: "day",
       account: null,
+      devices: [],
       dayStatesPerDevice: [],
-      weekStatesPerDevice: [],
-      monthStatesPerDevice: [],
       donutCurrentLabels: [],
       donutCurrentPowerData: [],
       donutCurrentTotalData: []
     };
+    this.timer = null;
     this.config = new Configuration();
     this.buildLine = this.buildLine.bind(this);
     this.buildDonut = this.buildDonut.bind(this);
     this.setChartFilter = this.setChartFilter.bind(this);
+    this.initCharts = this.initCharts.bind(this); 
+    this.updateCharts = this.updateCharts.bind(this); 
   }
 
-  UNSAFE_componentWillMount() {
+  initCharts() {
     fetch(this.config.TPLINK_ACCOUNT)
       .then((result) => result.json())
       .then((account) => {
@@ -60,41 +58,68 @@ class Dashboard extends React.Component {
         fetch(this.config.TPLINK_DEVICES.replaceAll("{accountId}", account.accountId))
           .then((result) => result.json())
           .then((devices) => {
+            this.setState({devices: devices});
             devices.forEach((device) => {
               let deviceObj = {
                 device: device,
-                deviceStates: [],
+                // deviceStates: [],
                 labels: [],
                 data: []
               };
               fetch(this.config.TPLINK_DEVICE_STATES.replaceAll("{accountId}", account.accountId).replaceAll("{id}", device.deviceId).replaceAll("{period}", "DAY"))
                 .then((result) => result.json())
                 .then((states) => {
-                  deviceObj.deviceStates = states;
-                  deviceObj.labels = states.map((state) => state.emeter.get_realtime.startTimeStr);
+                  // deviceObj.deviceStates = states;
+                  deviceObj.labels = states.map((state) => {
+                    let startTime = state.emeter.get_realtime.startTimeStr;
+                    return startTime.substring(0, startTime.lastIndexOf(".")).split(" ")[1];
+                  });
                   deviceObj.data = states.map((state) => state.emeter.get_realtime.power);
                   this.state.dayStatesPerDevice.push(deviceObj);
                   this.setChartFilter("day");
                 });
-              fetch(this.config.TPLINK_DEVICE_STATES.replaceAll("{accountId}", account.accountId).replaceAll("{id}", device.deviceId).replaceAll("{period}", "WEEK"))
-                .then((result) => result.json())
-                .then((states) => {
-                  deviceObj.deviceStates = states;
-                  deviceObj.labels = states.map((state) => state.emeter.get_realtime.startTimeStr);
-                  deviceObj.data = states.map((state) => state.emeter.get_realtime.power);
-                  this.state.weekStatesPerDevice.push(deviceObj);
-                });
-              fetch(this.config.TPLINK_DEVICE_STATES.replaceAll("{accountId}", account.accountId).replaceAll("{id}", device.deviceId).replaceAll("{period}", "MONTH"))
-                .then((result) => result.json())
-                .then((states) => {
-                  deviceObj.deviceStates = states;
-                  deviceObj.labels = states.map((state) => state.emeter.get_realtime.startTimeStr);
-                  deviceObj.data = states.map((state) => state.emeter.get_realtime.power);
-                  this.state.monthStatesPerDevice.push(deviceObj);
-                });
             });
           });
       });
+  }
+
+  updateCharts() {
+    let donutCurrentLabels = [], donutCurrentPowerData = [], donutCurrentTotalData = [];
+    fetch(this.config.TPLINK_DEVICES_STATE.replaceAll("{accountId}", this.state.account.accountId))
+      .then((result) => result.json())
+      .then((states) => {
+        states.forEach((state) => {
+          donutCurrentLabels.push(state.system.get_sysinfo.alias);
+          donutCurrentPowerData.push(state.emeter.get_realtime.power);
+          donutCurrentTotalData.push(state.emeter.get_realtime.total);
+        });
+        this.setState({donutCurrentLabels: donutCurrentLabels, donutCurrentPowerData: donutCurrentPowerData, donutCurrentTotalData: donutCurrentTotalData});
+      });
+//    let dayStatesPerDevice = [];
+//    this.state.devices.forEach((device) => {
+//      let deviceObj = {
+//        device: device,
+//        labels: [],
+//        data: []
+//      };
+//      fetch(this.config.TPLINK_DEVICE_STATES.replaceAll("{accountId}", this.state.account.accountId).replaceAll("{id}", device.deviceId).replaceAll("{period}", "DAY"))
+//        .then((result) => result.json())
+//        .then((states) => {
+//          deviceObj.labels = states.map((state) => state.emeter.get_realtime.startTimeStr);
+//          deviceObj.data = states.map((state) => state.emeter.get_realtime.power);
+//          dayStatesPerDevice.push(deviceObj);
+//        });
+//      this.setState({dayStatesPerDevice: dayStatesPerDevice});
+//    });
+  }
+
+  componentDidMount() {
+    this.initCharts();
+    this.timer = setInterval(() => this.updateCharts(), 10000);
+  }
+
+  componentWillUnmount() {
+    this.timer = null;
   }
 
   buildDonut(canvas, labels, data) {
@@ -145,14 +170,6 @@ class Dashboard extends React.Component {
       labels = this.state.dayStatesPerDevice.filter((deviceObj) => deviceObj.device.deviceId === deviceId).map((deviceObj) => deviceObj.labels)[0];
       data = this.state.dayStatesPerDevice.filter((deviceObj) => deviceObj.device.deviceId === deviceId).map((deviceObj) => deviceObj.data)[0];
       break;
-    case "week":
-      labels = this.state.weekStatesPerDevice.filter((deviceObj) => deviceObj.device.deviceId === deviceId).map((deviceObj) => deviceObj.labels)[0];
-      data = this.state.weekStatesPerDevice.filter((deviceObj) => deviceObj.device.deviceId === deviceId).map((deviceObj) => deviceObj.data)[0];
-      break;
-    case "month":
-      labels = this.state.monthStatesPerDevice.filter((deviceObj) => deviceObj.device.deviceId === deviceId).map((deviceObj) => deviceObj.labels)[0];
-      data = this.state.monthStatesPerDevice.filter((deviceObj) => deviceObj.device.deviceId === deviceId).map((deviceObj) => deviceObj.data)[0];
-      break;
     default:
     }
 
@@ -192,25 +209,33 @@ class Dashboard extends React.Component {
         <div className="content">
           <Row>
             <Col>
-            <Card className="card-chart">
-                <CardBody>
-                  <Row>
-                    <Col className="text-left" sm="6">
-                      <h5 className="card-category">Current power usage</h5>
+              <Card className="card-chart">
+                <Row>
+                  <Col className="text-left" sm="6">
+                    <CardHeader>
+                      <h5 className="card-category">Power usage</h5>
+                      <CardTitle tag="h3">Current consumption (watt)</CardTitle>
+                    </CardHeader>
+                    <CardBody>
                       <Doughnut
                         data={(canvas) => this.buildDonut(canvas, this.state.donutCurrentLabels, this.state.donutCurrentPowerData)}
                         options={donutChart.options}
                       />
-                    </Col>
-                    <Col className="text-left" sm="6">
-                      <h5 className="card-category">Total power usage</h5>
+                    </CardBody>
+                  </Col>
+                  <Col className="text-left" sm="6">
+                    <CardHeader>
+                      <h5 className="card-category">Power usage</h5>
+                      <CardTitle tag="h3">Total last 24 hours (watt per hour)</CardTitle>
+                    </CardHeader>
+                    <CardBody>
                       <Doughnut
                         data={(canvas) => this.buildDonut(canvas, this.state.donutCurrentLabels, this.state.donutCurrentTotalData)}
                         options={donutChart.options}
                       />
-                    </Col>
-                  </Row>
-                </CardBody>
+                    </CardBody>
+                  </Col>
+                </Row>
               </Card>
             </Col>
           </Row>
@@ -222,82 +247,8 @@ class Dashboard extends React.Component {
                     <CardHeader>
                       <Row>
                         <Col className="text-left" sm="6">
-                          <h5 className="card-category">Power usage</h5>
+                          <h5 className="card-category">{deviceObj.device.deviceModel} ({deviceObj.device.fwVer})</h5>
                           <CardTitle tag="h2">{deviceObj.device.alias}</CardTitle>
-                        </Col>
-                        <Col sm="6">
-                          <ButtonGroup
-                            className="btn-group-toggle float-right"
-                            data-toggle="buttons"
-                          >
-                            <Button
-                              tag="label"
-                              className={classNames("btn-simple", {
-                                active: this.state.chartFilter === "day"
-                              })}
-                              color="info"
-                              id="0"
-                              size="sm"
-                              onClick={() => this.setChartFilter("day")}
-                            >
-                              <input
-                                defaultChecked
-                                className="d-none"
-                                name="options"
-                                type="radio"
-                              />
-                              <span className="d-none d-sm-block d-md-block d-lg-block d-xl-block">
-                                Day
-                              </span>
-                              <span className="d-block d-sm-none">
-                                <i className="tim-icons icon-single-02" />
-                              </span>
-                            </Button>
-                            <Button
-                              color="info"
-                              id="1"
-                              size="sm"
-                              tag="label"
-                              className={classNames("btn-simple", {
-                                active: this.state.chartFilter === "week"
-                              })}
-                              onClick={() => this.setChartFilter("week")}
-                            >
-                              <input
-                                className="d-none"
-                                name="options"
-                                type="radio"
-                              />
-                              <span className="d-none d-sm-block d-md-block d-lg-block d-xl-block">
-                                Week
-                              </span>
-                              <span className="d-block d-sm-none">
-                                <i className="tim-icons icon-gift-2" />
-                              </span>
-                            </Button>
-                            <Button
-                              color="info"
-                              id="2"
-                              size="sm"
-                              tag="label"
-                              className={classNames("btn-simple", {
-                                active: this.state.chartFilter === "month"
-                              })}
-                              onClick={() => this.setChartFilter("month")}
-                            >
-                              <input
-                                className="d-none"
-                                name="options"
-                                type="radio"
-                              />
-                              <span className="d-none d-sm-block d-md-block d-lg-block d-xl-block">
-                                Month
-                              </span>
-                              <span className="d-block d-sm-none">
-                                <i className="tim-icons icon-tap-02" />
-                              </span>
-                            </Button>
-                          </ButtonGroup>
                         </Col>
                       </Row>
                     </CardHeader>

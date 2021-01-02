@@ -23,6 +23,7 @@ class Tables extends React.Component {
       devices: []
     };
     this.config = new Configuration();
+    this.handleChange = this.handleChange.bind(this);
   }
 
   UNSAFE_componentWillMount() {
@@ -34,6 +35,22 @@ class Tables extends React.Component {
           .then((json) => {
             this.setState({
               account: account,
+              devices: json
+            });
+          });
+      });
+  }
+
+  handleChange(deviceId, e) {
+    let value=e.target.value;
+      fetch(this.config.TPLINK_DEVICE_STATE.replaceAll("{accountId}", this.state.account.accountId).replaceAll("{id}", deviceId).replaceAll("{state}", (value === "1" ? "OFF" : "ON")), {
+        method: "put"
+      })
+      .then((result) => {
+        fetch(this.config.TPLINK_DEVICES.replaceAll("{accountId}", this.state.account.accountId))
+          .then((res) => res.json())
+          .then((json) => {
+            this.setState({
               devices: json
             });
           });
@@ -78,7 +95,7 @@ class Tables extends React.Component {
                               <td>{device.deviceRegion}</td>
                               <td>{device.deviceType}</td>
                               <td>{device.fwVer}</td>
-                              <td><Switch checked={device.deviceState !== undefined && device.deviceState.system.get_sysinfo.relay_state==="1" ? true : false} /></td>
+                              <td><Switch onChange={(e) => this.handleChange(device.deviceId, e)} checked={device.deviceState !== undefined && device.deviceState.system.get_sysinfo.relay_state==="1" ? true : false} value={device.deviceState.system.get_sysinfo.relay_state} /></td>
                             </tr>
                           );
                         })
