@@ -83,7 +83,7 @@ class Tables extends React.Component {
                       </tr>
                     </thead>
                     <tbody>
-                      {this.state.devices && this.state.devices.map((device) => {
+                      {this.state.devices && this.state.devices.filter((device) => device.deviceState !== null).map((device) => {
                           return (
                             <tr key={device.deviceId}>
                               <td>{device.alias}</td>
