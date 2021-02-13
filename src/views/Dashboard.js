@@ -46,7 +46,7 @@ class Dashboard extends React.Component {
       .then((result) => result.json())
       .then((account) => {
         this.setState({account: account});
-        fetch(this.config.TPLINK_DEVICES_STATE.replaceAll("{accountId}", account.accountId))
+        fetch(this.config.TPLINK_BASE + `/${encodeURIComponent(account.accountId)}/devices/state`)
           .then((result) => result.json())
           .then((states) => {
             states.forEach((state) => {
@@ -55,7 +55,7 @@ class Dashboard extends React.Component {
               this.state.donutCurrentTotalData.push(state.emeter.get_realtime.total);
             });
           });
-        fetch(this.config.TPLINK_DEVICES.replaceAll("{accountId}", account.accountId))
+        fetch(this.config.TPLINK_BASE + `/${encodeURIComponent(account.accountId)}/devices`)
           .then((result) => result.json())
           .then((devices) => {
             this.setState({devices: devices});
@@ -66,7 +66,7 @@ class Dashboard extends React.Component {
                 labels: [],
                 data: []
               };
-              fetch(this.config.TPLINK_DEVICE_STATES.replaceAll("{accountId}", account.accountId).replaceAll("{id}", device.deviceId).replaceAll("{period}", "DAY"))
+              fetch(this.config.TPLINK_BASE + `/${encodeURIComponent(account.accountId)}/device/${encodeURIComponent(device.deviceId)}/stats/${encodeURIComponent("DAY")}`)
                 .then((result) => result.json())
                 .then((states) => {
                   // deviceObj.deviceStates = states;
@@ -85,7 +85,7 @@ class Dashboard extends React.Component {
 
   updateCharts() {
     let donutCurrentLabels = [], donutCurrentPowerData = [], donutCurrentTotalData = [];
-    fetch(this.config.TPLINK_DEVICES_STATE.replaceAll("{accountId}", this.state.account.accountId))
+    fetch(this.config.TPLINK_BASE + `/${encodeURIComponent(this.state.account.accountId)}/devices/state`)
       .then((result) => result.json())
       .then((states) => {
         states.forEach((state) => {

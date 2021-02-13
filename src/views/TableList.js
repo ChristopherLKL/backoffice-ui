@@ -29,7 +29,7 @@ class Tables extends React.Component {
     fetch(this.config.TPLINK_ACCOUNT)
       .then((result) => result.json())
       .then((account) => {
-        fetch(this.config.TPLINK_DEVICES.replaceAll("{accountId}", account.accountId))
+        fetch(this.config.TPLINK_BASE + `/${encodeURIComponent(account.accountId)}/devices`)
           .then((result) => result.json())
           .then((json) => {
             this.setState({
@@ -42,18 +42,19 @@ class Tables extends React.Component {
 
   handleChange(deviceId, e) {
     let value=e.target.value;
-      fetch(this.config.TPLINK_DEVICE_STATE.replaceAll("{accountId}", this.state.account.accountId).replaceAll("{id}", deviceId).replaceAll("{state}", (value === "1" ? "OFF" : "ON")), {
-        method: "put"
-      })
-      .then((result) => {
-        fetch(this.config.TPLINK_DEVICES.replaceAll("{accountId}", this.state.account.accountId))
-          .then((res) => res.json())
-          .then((json) => {
-            this.setState({
-              devices: json
-            });
+    let state=(value === "1" ? "OFF" : "ON");
+    fetch(this.config.TPLINK_BASE + `/${encodeURIComponent(this.state.account.accountId)}/device/${encodeURIComponent(deviceId)}/state/${encodeURIComponent(state)}`, {
+      method: "put"
+    })
+    .then((result) => {
+      fetch(this.config.TPLINK_BASE + `/${encodeURIComponent(this.state.account.accountId)}/devices`)
+        .then((res) => res.json())
+        .then((json) => {
+          this.setState({
+            devices: json
           });
-      });
+        });
+    });
   }
 
   render() {
