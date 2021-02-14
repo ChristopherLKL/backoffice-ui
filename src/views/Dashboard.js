@@ -85,16 +85,18 @@ class Dashboard extends React.Component {
 
   updateCharts() {
     let donutCurrentLabels = [], donutCurrentPowerData = [], donutCurrentTotalData = [];
-    fetch(this.config.TPLINK_BASE + `/${encodeURIComponent(this.state.account.accountId)}/devices/state`)
-      .then((result) => result.json())
-      .then((states) => {
-        states.forEach((state) => {
-          donutCurrentLabels.push(state.system.get_sysinfo.alias);
-          donutCurrentPowerData.push(state.emeter.get_realtime.power);
-          donutCurrentTotalData.push(state.emeter.get_realtime.total);
+    if (this.state.account !== null) {
+      fetch(this.config.TPLINK_BASE + `/${encodeURIComponent(this.state.account.accountId)}/devices/state`)
+        .then((result) => result.json())
+        .then((states) => {
+          states.forEach((state) => {
+            donutCurrentLabels.push(state.system.get_sysinfo.alias);
+            donutCurrentPowerData.push(state.emeter.get_realtime.power);
+            donutCurrentTotalData.push(state.emeter.get_realtime.total);
+          });
+          this.setState({donutCurrentLabels: donutCurrentLabels, donutCurrentPowerData: donutCurrentPowerData, donutCurrentTotalData: donutCurrentTotalData});
         });
-        this.setState({donutCurrentLabels: donutCurrentLabels, donutCurrentPowerData: donutCurrentPowerData, donutCurrentTotalData: donutCurrentTotalData});
-      });
+    }
 //    let dayStatesPerDevice = [];
 //    this.state.devices.forEach((device) => {
 //      let deviceObj = {
