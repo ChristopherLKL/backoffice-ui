@@ -228,7 +228,7 @@ class Dashboard extends React.Component {
                   <Col className="text-left" sm="6">
                     <CardHeader>
                       <h4 className="title">&nbsp;</h4>
-                      <CardTitle tag="h3">Total last 24 hours (watt per hour)</CardTitle>
+                      <CardTitle tag="h3">Total average (watt per hour)</CardTitle>
                     </CardHeader>
                     <CardBody>
                       <Doughnut
